@@ -287,10 +287,43 @@ func Contexter(store Store) macaron.Handler {
 
 		c.renderNoticeBanner()
 
-		// 🚨 SECURITY: Prevent MIME type sniffing in some browsers,
-		// see https://github.com/gogs/gogs/issues/5397 for details.
-		c.Header().Set("X-Content-Type-Options", "nosniff")
-		c.Header().Set("X-Frame-Options", "deny")
+		// 🚨 SECURITY: Set security headers to mitigate various attacks.
+		// See https://github.com/gogs/gogs/issues/5397 and https://owasp.org/www-project-secure-headers/ for details.
+
+		// Content Security Policy - Mitigates XSS attacks
+		if len(conf.Security.ContentSecurityPolicy) > 0 {
+			c.Header().Set("Content-Security-Policy", conf.Security.ContentSecurityPolicy)
+		}
+
+		// X-Content-Type-Options - Prevents MIME type sniffing
+		if len(conf.Security.XContentTypeOptions) > 0 {
+			c.Header().Set("X-Content-Type-Options", conf.Security.XContentTypeOptions)
+		}
+
+		// X-Frame-Options - Prevents clickjacking attacks
+		if len(conf.Security.XFrameOptions) > 0 {
+			c.Header().Set("X-Frame-Options", conf.Security.XFrameOptions)
+		}
+
+		// X-XSS-Protection - Enables browser's XSS filter
+		if len(conf.Security.XXSSProtection) > 0 {
+			c.Header().Set("X-XSS-Protection", conf.Security.XXSSProtection)
+		}
+
+		// Referrer-Policy - Controls referrer information
+		if len(conf.Security.ReferrerPolicy) > 0 {
+			c.Header().Set("Referrer-Policy", conf.Security.ReferrerPolicy)
+		}
+
+		// Strict-Transport-Security - Forces HTTPS (only set when using HTTPS)
+		if conf.Server.Protocol == "https" && len(conf.Security.StrictTransportSecurity) > 0 {
+			c.Header().Set("Strict-Transport-Security", conf.Security.StrictTransportSecurity)
+		}
+
+		// Permissions-Policy - Controls browser features
+		if len(conf.Security.PermissionsPolicy) > 0 {
+			c.Header().Set("Permissions-Policy", conf.Security.PermissionsPolicy)
+		}
 
 		ctx.Map(c)
 	}

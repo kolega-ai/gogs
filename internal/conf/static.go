@@ -36,15 +36,22 @@ var CustomConf string
 var (
 	// Security settings
 	Security struct {
-		InstallLock             bool
-		SecretKey               string
-		LoginRememberDays       int
-		CookieRememberName      string
-		CookieUsername          string
-		CookieSecure            bool
-		EnableLoginStatusCookie bool
-		LoginStatusCookieName   string
-		LocalNetworkAllowlist   []string `delim:","`
+		InstallLock                bool
+		SecretKey                  string
+		LoginRememberDays          int
+		CookieRememberName         string
+		CookieUsername             string
+		CookieSecure               bool
+		EnableLoginStatusCookie    bool
+		LoginStatusCookieName      string
+		LocalNetworkAllowlist      []string `delim:","`
+		ContentSecurityPolicy      string
+		XContentTypeOptions        string   `ini:"X_CONTENT_TYPE_OPTIONS"`
+		XFrameOptions              string   `ini:"X_FRAME_OPTIONS"`
+		XXSSProtection             string   `ini:"X_XSS_PROTECTION"`
+		ReferrerPolicy             string
+		StrictTransportSecurity    string
+		PermissionsPolicy          string
 	}
 
 	// Email settings
