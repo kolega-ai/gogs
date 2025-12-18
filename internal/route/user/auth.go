@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/go-macaron/captcha"
 	"github.com/unknwon/com"
@@ -238,13 +239,33 @@ func LoginTwoFactorPost(c *context.Context) {
 	}
 
 	// Prevent same passcode from being reused
-	if c.Cache.IsExist(userutil.TwoFactorCacheKey(u.ID, passcode)) {
+	// Use optimistic locking to prevent race condition
+	cacheKey := userutil.TwoFactorCacheKey(u.ID, passcode)
+
+	// First check if passcode was already used
+	if c.Cache.IsExist(cacheKey) {
 		c.Flash.Error(c.Tr("settings.two_factor_reused_passcode"))
 		c.RedirectSubpath("/user/login/two_factor")
 		return
 	}
-	if err = c.Cache.Put(userutil.TwoFactorCacheKey(u.ID, passcode), 1, 60); err != nil {
+
+	// Try to claim this passcode with our unique timestamp
+	timestamp := time.Now().UnixNano()
+	if err = c.Cache.Put(cacheKey, timestamp, 60); err != nil {
 		log.Error("Failed to put cache 'two factor passcode': %v", err)
+		c.Flash.Error(c.Tr("settings.two_factor_reused_passcode"))
+		c.RedirectSubpath("/user/login/two_factor")
+		return
+	}
+
+	// Verify we were the first to claim this passcode (optimistic lock check)
+	// If another concurrent request also passed the existence check and stored a value,
+	// only one request will see its own timestamp here
+	storedValue := c.Cache.Get(cacheKey)
+	if storedValue != timestamp {
+		c.Flash.Error(c.Tr("settings.two_factor_reused_passcode"))
+		c.RedirectSubpath("/user/login/two_factor")
+		return
 	}
 
 	afterLogin(c, u, c.Session.Get("twoFactorRemember").(bool))
