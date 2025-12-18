@@ -74,7 +74,7 @@ tasks:
   less:
     desc: Generate CSS from LESS files
     cmds:
-      - lessc --clean-css --source-map "public/less/gogs.less" public/css/gogs.min.css
+      - lessc --clean-css "public/less/gogs.less" public/css/gogs.min.css
 
   fixme:
     desc: Show all occurrences of "FIXME"
