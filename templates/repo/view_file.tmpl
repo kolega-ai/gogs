@@ -41,9 +41,43 @@
 				{{if .FileContent}}{{.FileContent | Str2HTML}}{{end}}
 			{{else if .IsIPythonNotebook}}
 				<script>
+					// Validate notebook structure before rendering
+					function isValidNotebook(nb) {
+						if (!nb || typeof nb !== 'object') {
+							return false;
+						}
+						// Check for required notebook properties
+						if (!nb.cells || !Array.isArray(nb.cells)) {
+							return false;
+						}
+						if (!nb.metadata || typeof nb.metadata !== 'object') {
+							return false;
+						}
+						// Validate each cell has required structure
+						for (var i = 0; i < nb.cells.length; i++) {
+							var cell = nb.cells[i];
+							if (!cell || typeof cell !== 'object') {
+								return false;
+							}
+							if (!cell.cell_type || typeof cell.cell_type !== 'string') {
+								return false;
+							}
+						}
+						return true;
+					}
+
 					$.getJSON("{{.RawFileLink}}", null, function(notebook_json) {
+						// Validate notebook structure before processing
+						if (!isValidNotebook(notebook_json)) {
+							$("#ipython-notebook").html('<div class="ui error message">Invalid notebook format</div>');
+							return;
+						}
+
 						var notebook = nb.parse(notebook_json);
 						var rendered = notebook.render();
+
+						// Security: Send rendered HTML to server for sanitization before appending to DOM
+						// This prevents XSS from malicious notebook content
 						$.ajax({
 							type: "POST",
 							url: '{{AppSubURL}}/-/api/sanitize_ipynb',
@@ -67,7 +101,11 @@
 							$("#ipython-notebook .nb-markdown-cell").each(function(i, markdown) {
 								$(markdown).html(marked($(markdown).html(), {renderer: renderer}));
 							});
+						}).fail(function() {
+							$("#ipython-notebook").html('<div class="ui error message">Failed to sanitize notebook content</div>');
 						});
+					}).fail(function() {
+						$("#ipython-notebook").html('<div class="ui error message">Failed to load notebook</div>');
 					});
 				</script>
 			{{else if .ReadmeInList}}
