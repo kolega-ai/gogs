@@ -6,6 +6,7 @@ package database
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"strconv"
 	"time"
@@ -19,8 +20,41 @@ import (
 	"gogs.io/gogs/internal/auth/ldap"
 	"gogs.io/gogs/internal/auth/pam"
 	"gogs.io/gogs/internal/auth/smtp"
+	"gogs.io/gogs/internal/conf"
+	"gogs.io/gogs/internal/cryptoutil"
 	"gogs.io/gogs/internal/errutil"
 )
+
+// encryptPassword encrypts a password using AES-GCM with the site secret key.
+// Returns the base64-encoded encrypted password.
+func encryptPassword(password string) (string, error) {
+	if password == "" {
+		return "", nil
+	}
+	encrypted, err := cryptoutil.AESGCMEncrypt(cryptoutil.MD5Bytes(conf.Security.SecretKey), []byte(password))
+	if err != nil {
+		return "", errors.Wrap(err, "encrypt password")
+	}
+	return base64.StdEncoding.EncodeToString(encrypted), nil
+}
+
+// decryptPassword decrypts a base64-encoded encrypted password using AES-GCM.
+func decryptPassword(encryptedPassword string) (string, error) {
+	if encryptedPassword == "" {
+		return "", nil
+	}
+	encrypted, err := base64.StdEncoding.DecodeString(encryptedPassword)
+	if err != nil {
+		// If decoding fails, assume it's a legacy plaintext password
+		return encryptedPassword, nil
+	}
+	decrypted, err := cryptoutil.AESGCMDecrypt(cryptoutil.MD5Bytes(conf.Security.SecretKey), encrypted)
+	if err != nil {
+		// If decryption fails, assume it's a legacy plaintext password
+		return encryptedPassword, nil
+	}
+	return string(decrypted), nil
+}
 
 // LoginSource represents an external way for authorizing users.
 type LoginSource struct {
@@ -45,7 +79,17 @@ func (s *LoginSource) BeforeSave(_ *gorm.DB) (err error) {
 	if s.Provider == nil {
 		return nil
 	}
-	s.Config, err = jsoniter.MarshalToString(s.Provider.Config())
+
+	// Encrypt sensitive credentials before saving
+	config := s.Provider.Config()
+	if ldapConfig, ok := config.(*ldap.Config); ok && ldapConfig.BindPassword != "" {
+		ldapConfig.BindPassword, err = encryptPassword(ldapConfig.BindPassword)
+		if err != nil {
+			return errors.Wrap(err, "encrypt LDAP bind password")
+		}
+	}
+
+	s.Config, err = jsoniter.MarshalToString(config)
 	return err
 }
 
@@ -80,6 +124,11 @@ func (s *LoginSource) AfterFind(_ *gorm.DB) error {
 		if err != nil {
 			return err
 		}
+		// Decrypt bind password
+		cfg.BindPassword, err = decryptPassword(cfg.BindPassword)
+		if err != nil {
+			return errors.Wrap(err, "decrypt LDAP bind password")
+		}
 		s.Provider = ldap.NewProvider(false, &cfg)
 
 	case auth.DLDAP:
@@ -87,6 +136,11 @@ func (s *LoginSource) AfterFind(_ *gorm.DB) error {
 		err := jsoniter.UnmarshalFromString(s.Config, &cfg)
 		if err != nil {
 			return err
+		}
+		// Decrypt bind password
+		cfg.BindPassword, err = decryptPassword(cfg.BindPassword)
+		if err != nil {
+			return errors.Wrap(err, "decrypt LDAP bind password")
 		}
 		s.Provider = ldap.NewProvider(true, &cfg)
 
@@ -213,6 +267,14 @@ func (s *LoginSourcesStore) Create(ctx context.Context, opts CreateLoginSourceOp
 		return nil, err
 	}
 
+	// Encrypt sensitive credentials before saving
+	if ldapConfig, ok := opts.Config.(*ldap.Config); ok && ldapConfig.BindPassword != "" {
+		ldapConfig.BindPassword, err = encryptPassword(ldapConfig.BindPassword)
+		if err != nil {
+			return nil, errors.Wrap(err, "encrypt LDAP bind password")
+		}
+	}
+
 	source := &LoginSource{
 		Type:      opts.Type,
 		Name:      opts.Name,
@@ -324,10 +386,20 @@ func (s *LoginSourcesStore) Save(ctx context.Context, source *LoginSource) error
 		return s.db.WithContext(ctx).Save(source).Error
 	}
 
+	// Encrypt sensitive credentials before saving to file
+	config := source.Provider.Config()
+	if ldapConfig, ok := config.(*ldap.Config); ok && ldapConfig.BindPassword != "" {
+		var err error
+		ldapConfig.BindPassword, err = encryptPassword(ldapConfig.BindPassword)
+		if err != nil {
+			return errors.Wrap(err, "encrypt LDAP bind password")
+		}
+	}
+
 	source.File.SetGeneral("name", source.Name)
 	source.File.SetGeneral("is_activated", strconv.FormatBool(source.IsActived))
 	source.File.SetGeneral("is_default", strconv.FormatBool(source.IsDefault))
-	if err := source.File.SetConfig(source.Provider.Config()); err != nil {
+	if err := source.File.SetConfig(config); err != nil {
 		return errors.Wrap(err, "set config")
 	} else if err = source.File.Save(); err != nil {
 		return errors.Wrap(err, "save file")

@@ -234,9 +234,19 @@ func EditAuthSourcePost(c *context.Context, f form.Authentication) {
 	var provider auth.Provider
 	switch auth.Type(f.Type) {
 	case auth.LDAP:
-		provider = ldap.NewProvider(false, parseLDAPConfig(f))
+		cfg := parseLDAPConfig(f)
+		// If password is empty, keep the existing password
+		if cfg.BindPassword == "" && source.IsLDAP() {
+			cfg.BindPassword = source.LDAP().BindPassword
+		}
+		provider = ldap.NewProvider(false, cfg)
 	case auth.DLDAP:
-		provider = ldap.NewProvider(true, parseLDAPConfig(f))
+		cfg := parseLDAPConfig(f)
+		// If password is empty, keep the existing password
+		if cfg.BindPassword == "" && source.IsDLDAP() {
+			cfg.BindPassword = source.LDAP().BindPassword
+		}
+		provider = ldap.NewProvider(true, cfg)
 	case auth.SMTP:
 		provider = smtp.NewProvider(parseSMTPConfig(f))
 	case auth.PAM:

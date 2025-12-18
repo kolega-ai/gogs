@@ -55,7 +55,10 @@
 								<input class="fake" type="password">
 								<div class="field">
 									<label for="bind_password">{{.i18n.Tr "admin.auths.bind_password"}}</label>
-									<input id="bind_password" name="bind_password" type="password" value="{{$cfg.BindPassword}}">
+									<input id="bind_password" name="bind_password" type="password" placeholder="{{if $cfg.BindPassword}}Leave blank to keep current password{{end}}">
+									{{if $cfg.BindPassword}}
+										<p class="help">Password is set. Leave blank to keep current value.</p>
+									{{end}}
 									<p class="help text red">{{.i18n.Tr "admin.auths.bind_password_helper"}}</p>
 								</div>
 								<div class="required field">

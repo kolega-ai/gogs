@@ -164,6 +164,11 @@ func loadLoginSourceFiles(authdPath string, clock func() time.Time) (loginSource
 			if err != nil {
 				return errors.Wrap(err, `map "config" section`)
 			}
+			// Decrypt bind password
+			cfg.BindPassword, err = decryptPassword(cfg.BindPassword)
+			if err != nil {
+				return errors.Wrap(err, "decrypt LDAP bind password")
+			}
 			loginSource.Type = auth.LDAP
 			loginSource.Provider = ldap.NewProvider(false, &cfg)
 
@@ -172,6 +177,11 @@ func loadLoginSourceFiles(authdPath string, clock func() time.Time) (loginSource
 			err = cfgSection.MapTo(&cfg)
 			if err != nil {
 				return errors.Wrap(err, `map "config" section`)
+			}
+			// Decrypt bind password
+			cfg.BindPassword, err = decryptPassword(cfg.BindPassword)
+			if err != nil {
+				return errors.Wrap(err, "decrypt LDAP bind password")
 			}
 			loginSource.Type = auth.DLDAP
 			loginSource.Provider = ldap.NewProvider(true, &cfg)
