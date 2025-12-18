@@ -58,14 +58,16 @@
 							});
 
 							// Overwrite image method to append proper prefix to the source URL
-							var renderer = new marked.Renderer();
 							var context = '{{.RawFileLink}}';
 							context = context.substring(0, context.lastIndexOf("/"));
-							renderer.image = function (href, title, text) {
-								return `<img src="${context}/${href}"`
+							var renderer = {
+								image({ href, title, text }) {
+									return `<img src="${context}/${href}" alt="${text || ''}" title="${title || ''}" />`;
+								}
 							};
+							marked.use({ renderer: renderer });
 							$("#ipython-notebook .nb-markdown-cell").each(function(i, markdown) {
-								$(markdown).html(marked($(markdown).html(), {renderer: renderer}));
+								$(markdown).html(marked.parse($(markdown).html()));
 							});
 						});
 					});
