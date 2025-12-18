@@ -715,7 +715,10 @@ func (t *HookTask) deliver() {
 		Header("X-Gogs-Delivery", t.UUID).
 		Header("X-Gogs-Signature", t.Signature).
 		Header("X-Gogs-Event", string(t.EventType)).
-		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: conf.Webhook.SkipTLSVerify})
+		SetTLSClientConfig(&tls.Config{
+			InsecureSkipVerify: conf.Webhook.SkipTLSVerify,
+			MinVersion:         tls.VersionTLS12,
+		})
 
 	switch t.ContentType {
 	case JSON:
