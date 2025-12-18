@@ -401,14 +401,17 @@ CodeMirror.defineMode('jade', function (config) {
         state.scriptType = stream.current().toString();
       }
       if (state.attrsNest.length === 0 && (tok === 'string' || tok === 'variable' || tok === 'keyword')) {
-        try {
-          Function('', 'var x ' + state.attrValue.replace(/,\s*$/, '').replace(/^!/, ''));
+        // Use regex-based validation instead of Function() to avoid code injection risks
+        var attrValue = state.attrValue.replace(/,\s*$/, '').replace(/^!/, '');
+        // Check for basic JavaScript variable declaration syntax patterns
+        var isValidAttr = /^[\s]*$/.test(attrValue) ||
+                         /^[a-zA-Z_$][a-zA-Z0-9_$]*(\s*[,]\s*[a-zA-Z_$][a-zA-Z0-9_$]*)*[\s]*$/.test(attrValue) ||
+                         /^(\{[^}]*\}|\[[^\]]*\]|'[^']*'|"[^"]*"|\d+|true|false|null|undefined)/.test(attrValue);
+        if (isValidAttr) {
           state.inAttributeName = true;
           state.attrValue = '';
           stream.backUp(stream.current().length);
           return attrsContinued(stream, state);
-        } catch (ex) {
-          //not the end of an attribute
         }
       }
       state.attrValue += stream.current();
