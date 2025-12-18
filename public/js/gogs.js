@@ -301,7 +301,6 @@ function initRepository() {
       fullTextSearch: true,
       onChange: function(text, value, $choice) {
         window.location.href = $choice.data("url");
-        console.log($choice.data("url"));
       },
       message: { noResults: $dropdown.data("no-results") }
     });
@@ -1336,8 +1335,6 @@ function initCodeView() {
 }
 
 function initUserSettings() {
-  console.log("initUserSettings");
-
   // Options
   if ($(".user.settings.profile").length > 0) {
     $("#username").keyup(function() {
@@ -1361,8 +1358,6 @@ function initUserSettings() {
 }
 
 function initRepositoryCollaboration() {
-  console.log("initRepositoryCollaboration");
-
   // Change collaborator access mode
   $(".access-mode.menu .item").click(function() {
     var $menu = $(this).parent();
