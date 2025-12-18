@@ -1190,7 +1190,8 @@ function searchUsers() {
     }
 
     $.ajax({
-      url: suburl + "/api/v1/users/search?q=" + keyword,
+      url: suburl + "/api/v1/users/search",
+      data: { q: keyword },
       dataType: "json",
       success: function(response) {
         var notEmpty = function(str) {
@@ -1252,12 +1253,8 @@ function searchRepositories() {
     }
 
     $.ajax({
-      url:
-        suburl +
-        "/api/v1/repos/search?q=" +
-        keyword +
-        "&uid=" +
-        $searchRepoBox.data("uid"),
+      url: suburl + "/api/v1/repos/search",
+      data: { q: keyword, uid: $searchRepoBox.data("uid") },
       dataType: "json",
       success: function(response) {
         var notEmpty = function(str) {
