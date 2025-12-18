@@ -21,8 +21,11 @@
 		<input class="fake" type="password">
 		<div class="field {{if .Err_Secret}}error{{end}}">
 			<label for="secret">{{.i18n.Tr "repo.settings.secret"}}</label>
-			<input id="secret" name="secret" type="password" value="{{.Webhook.Secret}}" autocomplete="off">
-			<p class="text grey desc">{{.i18n.Tr "repo.settings.secret_desc" | Safe}}</p>
+			<input id="secret" name="secret" type="password" autocomplete="off">
+			{{if not .PageIsSettingsHooksNew}}
+			<p class="help">{{.i18n.Tr "repo.settings.secret_helper"}}</p>
+		{{end}}
+		<p class="text grey desc">{{.i18n.Tr "repo.settings.secret_desc" | Safe}}</p>
 		</div>
 		{{template "repo/settings/webhook/settings" .}}
 	</form>

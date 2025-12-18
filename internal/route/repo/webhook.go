@@ -382,7 +382,9 @@ func WebhooksEditPost(c *context.Context, orCtx *orgRepoContext, f form.NewWebho
 
 	w.URL = f.PayloadURL
 	w.ContentType = contentType
-	w.Secret = f.Secret
+	if f.Secret != "" {
+		w.Secret = f.Secret
+	}
 	w.HookEvent = toHookEvent(f.Webhook)
 	w.IsActive = f.Active
 	validateAndUpdateWebhook(c, orCtx, w)
