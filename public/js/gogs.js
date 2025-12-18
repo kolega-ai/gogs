@@ -1200,20 +1200,22 @@ function searchUsers() {
         $results.html("");
 
         if (response.ok && response.data.length) {
-          var html = "";
           $.each(response.data, function(i, item) {
-            html +=
-              '<div class="item"><img class="ui avatar image" src="' +
-              item.avatar_url +
-              '"><span class="username">' +
-              item.username +
-              "</span>";
+            var $item = $('<div class="item"></div>');
+            var $img = $('<img class="ui avatar image">').attr("src", item.avatar_url);
+            var $username = $('<span class="username"></span>').text(item.username);
+
+            $item.append($img);
+            $item.append($username);
+
             if (notEmpty(item.full_name)) {
-              html += " (" + item.full_name + ")";
+              $item.append(" (");
+              $item.append($("<span></span>").text(item.full_name));
+              $item.append(")");
             }
-            html += "</div>";
+
+            $results.append($item);
           });
-          $results.html(html);
           $this.find(".results .item").click(function() {
             $this.find("input").val(
               $(this)
