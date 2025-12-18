@@ -241,6 +241,7 @@ func runHookPostReceive(c *cli.Context) error {
 		resp, err := httplib.Get(reqURL).
 			SetTLSClientConfig(&tls.Config{
 				InsecureSkipVerify: true,
+				MinVersion:         tls.VersionTLS12,
 			}).Response()
 		if err == nil {
 			_ = resp.Body.Close()
