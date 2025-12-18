@@ -57,15 +57,16 @@
 								hljs.highlightBlock(block);
 							});
 
-							// Overwrite image method to append proper prefix to the source URL
-							var renderer = new marked.Renderer();
+							// Fix relative image URLs by safely manipulating DOM attributes
 							var context = '{{.RawFileLink}}';
 							context = context.substring(0, context.lastIndexOf("/"));
-							renderer.image = function (href, title, text) {
-								return `<img src="${context}/${href}"`
-							};
-							$("#ipython-notebook .nb-markdown-cell").each(function(i, markdown) {
-								$(markdown).html(marked($(markdown).html(), {renderer: renderer}));
+							$("#ipython-notebook .nb-markdown-cell img").each(function(i, img) {
+								var $img = $(img);
+								var src = $img.attr('src');
+								// Only fix relative URLs (not absolute http/https or data URLs)
+								if (src && !src.match(/^https?:\/\//) && !src.match(/^data:/) && !src.match(/^\//)) {
+									$img.attr('src', context + '/' + src);
+								}
 							});
 						});
 					});
