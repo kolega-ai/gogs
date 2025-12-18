@@ -174,6 +174,9 @@ func RegisterRoutes(m *macaron.Macaron) {
 		// Handle preflight OPTIONS request
 		m.Options("/*", func() {})
 
+		// Apply rate limiting to all API endpoints
+		m.Use(rateLimiter())
+
 		// Miscellaneous
 		m.Post("/markdown", bind(api.MarkdownOption{}), misc.Markdown)
 		m.Post("/markdown/raw", misc.MarkdownRaw)
