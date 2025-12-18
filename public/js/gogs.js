@@ -3,6 +3,21 @@
 var csrf;
 var suburl;
 
+// Helper function to escape HTML and prevent XSS
+function escapeHtml(text) {
+  if (!text) return "";
+  var map = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  };
+  return String(text).replace(/[&<>"']/g, function(m) {
+    return map[m];
+  });
+}
+
 function initCommentPreviewTab($form) {
   var $tabMenu = $form.find(".tabular.menu");
   $tabMenu.find(".item").tab();
@@ -243,10 +258,10 @@ function initCommentForm() {
           $list
             .find(".selected")
             .html(
-              '<a class="item" href=' +
-                $(this).data("href") +
-                ">" +
-                $(this).text() +
+              '<a class="item" href="' +
+                escapeHtml($(this).data("href")) +
+                '">' +
+                escapeHtml($(this).text()) +
                 "</a>"
             );
           break;
@@ -254,13 +269,13 @@ function initCommentForm() {
           $list
             .find(".selected")
             .html(
-              '<a class="item" href=' +
-                $(this).data("href") +
-                ">" +
-                '<img class="ui avatar image" src=' +
-                $(this).data("avatar") +
-                ">" +
-                $(this).text() +
+              '<a class="item" href="' +
+                escapeHtml($(this).data("href")) +
+                '">' +
+                '<img class="ui avatar image" src="' +
+                escapeHtml($(this).data("avatar")) +
+                '">' +
+                escapeHtml($(this).text()) +
                 "</a>"
             );
       }
@@ -1204,12 +1219,12 @@ function searchUsers() {
           $.each(response.data, function(i, item) {
             html +=
               '<div class="item"><img class="ui avatar image" src="' +
-              item.avatar_url +
+              escapeHtml(item.avatar_url) +
               '"><span class="username">' +
-              item.username +
+              escapeHtml(item.username) +
               "</span>";
             if (notEmpty(item.full_name)) {
-              html += " (" + item.full_name + ")";
+              html += " (" + escapeHtml(item.full_name) + ")";
             }
             html += "</div>";
           });
@@ -1271,7 +1286,7 @@ function searchRepositories() {
           $.each(response.data, function(i, item) {
             html +=
               '<div class="item"><i class="octicon octicon-repo"></i> <span class="fullname">' +
-              item.full_name +
+              escapeHtml(item.full_name) +
               "</span></div>";
           });
           $results.html(html);
