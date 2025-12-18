@@ -164,3 +164,22 @@ func RawMarkdown(body []byte, urlPrefix string) []byte {
 func Markdown(input any, urlPrefix string, metas map[string]string) []byte {
 	return Render(TypeMarkdown, input, urlPrefix, metas)
 }
+
+// MarkdownEmail takes a string or []byte and renders to HTML in Markdown syntax with special links,
+// using a stricter sanitization policy suitable for email that removes img tags to prevent tracking.
+func MarkdownEmail(input any, urlPrefix string, metas map[string]string) []byte {
+	var rawBytes []byte
+	switch v := input.(type) {
+	case []byte:
+		rawBytes = v
+	case string:
+		rawBytes = []byte(v)
+	default:
+		panic(fmt.Sprintf("unrecognized input content type: %T", input))
+	}
+
+	urlPrefix = strings.TrimRight(strings.ReplaceAll(urlPrefix, " ", "%20"), "/")
+	rawHTML := RawMarkdown(rawBytes, urlPrefix)
+	rawHTML = postProcessHTML(rawHTML, urlPrefix, metas)
+	return SanitizeEmailBytes(rawHTML)
+}

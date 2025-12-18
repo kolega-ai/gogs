@@ -40,6 +40,9 @@ var (
 // render renders a mail template with given data.
 func render(tpl string, data map[string]any) (string, error) {
 	tplRenderOnce.Do(func() {
+		// Initialize email-specific sanitizer to prevent tracking via img tags
+		markup.NewEmailSanitizer()
+
 		customDir := filepath.Join(conf.CustomDir(), "templates")
 		opt := &macaron.RenderOptions{
 			Directory:         filepath.Join(conf.WorkDir(), "templates", "mail"),
@@ -56,7 +59,7 @@ func render(tpl string, data map[string]any) (string, error) {
 					return time.Now().Year()
 				},
 				"Str2HTML": func(raw string) template.HTML {
-					return template.HTML(markup.Sanitize(raw))
+					return template.HTML(markup.SanitizeEmail(raw))
 				},
 			}},
 		}
@@ -197,7 +200,7 @@ func composeTplData(subject, body, link string) map[string]any {
 
 func composeIssueMessage(issue Issue, repo Repository, doer User, tplName string, tos []string, info string) *Message {
 	subject := issue.MailSubject()
-	body := string(markup.Markdown([]byte(issue.Content()), repo.HTMLURL(), repo.ComposeMetas()))
+	body := string(markup.MarkdownEmail([]byte(issue.Content()), repo.HTMLURL(), repo.ComposeMetas()))
 	data := composeTplData(subject, body, issue.HTMLURL())
 	data["Doer"] = doer
 	content, err := render(tplName, data)
