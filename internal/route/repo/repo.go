@@ -177,6 +177,7 @@ func MigratePost(c *context.Context, f form.MigrateRepo) {
 	if err != nil {
 		if database.IsErrInvalidCloneAddr(err) {
 			c.Data["Err_CloneAddr"] = true
+			f.AuthPassword = "" // Never send password back to template
 			addrErr := err.(database.ErrInvalidCloneAddr)
 			switch {
 			case addrErr.IsURLError:
@@ -219,14 +220,17 @@ func MigratePost(c *context.Context, f form.MigrateRepo) {
 	if strings.Contains(err.Error(), "Authentication failed") ||
 		strings.Contains(err.Error(), "could not read Username") {
 		c.Data["Err_Auth"] = true
+		f.AuthPassword = "" // Never send password back to template
 		c.RenderWithErr(c.Tr("form.auth_failed", database.HandleMirrorCredentials(err.Error(), true)), MIGRATE, &f)
 		return
 	} else if strings.Contains(err.Error(), "fatal:") {
 		c.Data["Err_CloneAddr"] = true
+		f.AuthPassword = "" // Never send password back to template
 		c.RenderWithErr(c.Tr("repo.migrate.failed", database.HandleMirrorCredentials(err.Error(), true)), MIGRATE, &f)
 		return
 	}
 
+	f.AuthPassword = "" // Never send password back to template
 	handleCreateError(c, err, "MigratePost", MIGRATE, &f)
 }
 
