@@ -48,7 +48,7 @@ func newTwoFactorsStore(db *gorm.DB) *TwoFactorsStore {
 // configured in site-level and change of the "key" will break all existing 2FA
 // tokens.
 func (s *TwoFactorsStore) Create(ctx context.Context, userID int64, key, secret string) error {
-	encrypted, err := cryptoutil.AESGCMEncrypt(cryptoutil.MD5Bytes(key), []byte(secret))
+	encrypted, err := cryptoutil.AESGCMEncrypt(cryptoutil.DeriveKey(key), []byte(secret))
 	if err != nil {
 		return errors.Wrap(err, "encrypt secret")
 	}

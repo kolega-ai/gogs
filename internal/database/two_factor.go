@@ -32,10 +32,17 @@ func (t *TwoFactor) ValidateTOTP(passcode string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("DecodeString: %v", err)
 	}
-	decryptSecret, err := com.AESGCMDecrypt(cryptoutil.MD5Bytes(conf.Security.SecretKey), secret)
+
+	// Try decrypting with PBKDF2-derived key first (new method)
+	decryptSecret, err := com.AESGCMDecrypt(cryptoutil.DeriveKey(conf.Security.SecretKey), secret)
 	if err != nil {
-		return false, fmt.Errorf("AESGCMDecrypt: %v", err)
+		// Fall back to MD5-derived key for backward compatibility with existing 2FA secrets
+		decryptSecret, err = com.AESGCMDecrypt(cryptoutil.MD5Bytes(conf.Security.SecretKey), secret)
+		if err != nil {
+			return false, fmt.Errorf("AESGCMDecrypt: %v", err)
+		}
 	}
+
 	return totp.Validate(passcode, string(decryptSecret)), nil
 }
 
