@@ -16,6 +16,7 @@ import (
 	"gogs.io/gogs/internal/email"
 	"gogs.io/gogs/internal/form"
 	"gogs.io/gogs/internal/route"
+	"gogs.io/gogs/internal/userutil"
 )
 
 const (
@@ -74,6 +75,15 @@ func NewUserPost(c *context.Context, f form.AdminCrateUser) {
 	if c.HasError() {
 		c.Success(tmplAdminUserNew)
 		return
+	}
+
+	// Validate password strength for local accounts
+	if len(f.LoginType) == 0 || f.LoginType == "0-0" {
+		if err := userutil.ValidatePasswordStrength(f.Password); err != nil {
+			c.Data["Err_Password"] = true
+			c.RenderWithErr(err.Error(), tmplAdminUserNew, &f)
+			return
+		}
 	}
 
 	createUserOpts := database.CreateUserOptions{
@@ -196,6 +206,14 @@ func EditUserPost(c *context.Context, f form.AdminEditUser) {
 	}
 
 	if f.Password != "" {
+		// Validate password strength for local accounts
+		if u.LoginSource == 0 {
+			if err := userutil.ValidatePasswordStrength(f.Password); err != nil {
+				c.Data["Err_Password"] = true
+				c.RenderWithErr(err.Error(), tmplAdminUserEdit, &f)
+				return
+			}
+		}
 		opts.Password = &f.Password
 	}
 

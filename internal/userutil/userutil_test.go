@@ -199,3 +199,57 @@ func TestRandomSalt(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotEqual(t, salt1, salt2)
 }
+
+func TestValidatePasswordStrength(t *testing.T) {
+	tests := []struct {
+		name     string
+		password string
+		wantErr  bool
+	}{
+		{
+			name:     "valid password",
+			password: "MySecurePass123",
+			wantErr:  false,
+		},
+		{
+			name:     "valid password with special chars",
+			password: "MySecure!Pass123",
+			wantErr:  false,
+		},
+		{
+			name:     "too short",
+			password: "Short1Aa",
+			wantErr:  true,
+		},
+		{
+			name:     "no uppercase",
+			password: "mysecurepass123",
+			wantErr:  true,
+		},
+		{
+			name:     "no lowercase",
+			password: "MYSECUREPASS123",
+			wantErr:  true,
+		},
+		{
+			name:     "no numbers",
+			password: "MySecurePassword",
+			wantErr:  true,
+		},
+		{
+			name:     "empty password",
+			password: "",
+			wantErr:  true,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := ValidatePasswordStrength(test.password)
+			if test.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}

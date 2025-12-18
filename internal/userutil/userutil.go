@@ -139,3 +139,36 @@ func TwoFactorCacheKey(userID int64, passcode string) string {
 func RandomSalt() (string, error) {
 	return strutil.RandomChars(10)
 }
+
+// ValidatePasswordStrength validates that a password meets minimum security
+// requirements. It returns an error if the password is weak.
+func ValidatePasswordStrength(password string) error {
+	const minLength = 12
+
+	if len(password) < minLength {
+		return fmt.Errorf("password must be at least %d characters", minLength)
+	}
+
+	var (
+		hasUpper  bool
+		hasLower  bool
+		hasNumber bool
+	)
+
+	for _, char := range password {
+		switch {
+		case char >= 'A' && char <= 'Z':
+			hasUpper = true
+		case char >= 'a' && char <= 'z':
+			hasLower = true
+		case char >= '0' && char <= '9':
+			hasNumber = true
+		}
+	}
+
+	if !hasUpper || !hasLower || !hasNumber {
+		return fmt.Errorf("password must contain uppercase, lowercase, and numeric characters")
+	}
+
+	return nil
+}
