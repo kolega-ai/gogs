@@ -1190,7 +1190,7 @@ function searchUsers() {
     }
 
     $.ajax({
-      url: suburl + "/api/v1/users/search?q=" + keyword,
+      url: suburl + "/api/v1/users/search?q=" + encodeURIComponent(keyword),
       dataType: "json",
       success: function(response) {
         var notEmpty = function(str) {
@@ -1251,13 +1251,19 @@ function searchRepositories() {
       return;
     }
 
+    var uid = parseInt($searchRepoBox.data("uid"), 10);
+    if (isNaN(uid) || uid <= 0) {
+      $results.hide();
+      return;
+    }
+
     $.ajax({
       url:
         suburl +
         "/api/v1/repos/search?q=" +
-        keyword +
+        encodeURIComponent(keyword) +
         "&uid=" +
-        $searchRepoBox.data("uid"),
+        uid,
       dataType: "json",
       success: function(response) {
         var notEmpty = function(str) {
