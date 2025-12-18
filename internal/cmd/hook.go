@@ -233,7 +233,7 @@ func runHookPostReceive(c *cli.Context) error {
 		// Ask for running deliver hook and test pull request tasks
 		q := make(url.Values)
 		q.Add("branch", git.RefShortName(options.FullRefspec))
-		q.Add("secret", os.Getenv(database.EnvRepoOwnerSaltMd5))
+		q.Add("secret", os.Getenv(database.EnvRepoOwnerSaltSha256))
 		q.Add("pusher", os.Getenv(database.EnvAuthUserID))
 		reqURL := fmt.Sprintf("%s%s/%s/tasks/trigger?%s", conf.Server.LocalRootURL, options.RepoUserName, options.RepoName, q.Encode())
 		log.Trace("Trigger task: %s", reqURL)

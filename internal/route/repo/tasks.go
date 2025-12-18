@@ -39,7 +39,7 @@ func TriggerTask(c *macaron.Context) {
 
 	// 🚨 SECURITY: No need to check existence of the repository if the client
 	// can't even get the valid secret. Mostly likely not a legitimate request.
-	if secret != cryptoutil.MD5(owner.Salt) {
+	if secret != cryptoutil.SHA256(owner.Salt) {
 		c.Error(http.StatusBadRequest, "Invalid secret")
 		return
 	}

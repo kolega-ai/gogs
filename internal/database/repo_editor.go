@@ -32,14 +32,14 @@ import (
 )
 
 const (
-	EnvAuthUserID          = "GOGS_AUTH_USER_ID"
-	EnvAuthUserName        = "GOGS_AUTH_USER_NAME"
-	EnvAuthUserEmail       = "GOGS_AUTH_USER_EMAIL"
-	EnvRepoOwnerName       = "GOGS_REPO_OWNER_NAME"
-	EnvRepoOwnerSaltMd5    = "GOGS_REPO_OWNER_SALT_MD5"
-	EnvRepoID              = "GOGS_REPO_ID"
-	EnvRepoName            = "GOGS_REPO_NAME"
-	EnvRepoCustomHooksPath = "GOGS_REPO_CUSTOM_HOOKS_PATH"
+	EnvAuthUserID            = "GOGS_AUTH_USER_ID"
+	EnvAuthUserName          = "GOGS_AUTH_USER_NAME"
+	EnvAuthUserEmail         = "GOGS_AUTH_USER_EMAIL"
+	EnvRepoOwnerName         = "GOGS_REPO_OWNER_NAME"
+	EnvRepoOwnerSaltSha256   = "GOGS_REPO_OWNER_SALT_SHA256"
+	EnvRepoID                = "GOGS_REPO_ID"
+	EnvRepoName              = "GOGS_REPO_NAME"
+	EnvRepoCustomHooksPath   = "GOGS_REPO_CUSTOM_HOOKS_PATH"
 )
 
 type ComposeHookEnvsOptions struct {
@@ -58,7 +58,7 @@ func ComposeHookEnvs(opts ComposeHookEnvsOptions) []string {
 		EnvAuthUserName + "=" + opts.AuthUser.Name,
 		EnvAuthUserEmail + "=" + opts.AuthUser.Email,
 		EnvRepoOwnerName + "=" + opts.OwnerName,
-		EnvRepoOwnerSaltMd5 + "=" + cryptoutil.MD5(opts.OwnerSalt),
+		EnvRepoOwnerSaltSha256 + "=" + cryptoutil.SHA256(opts.OwnerSalt),
 		EnvRepoID + "=" + com.ToStr(opts.RepoID),
 		EnvRepoName + "=" + opts.RepoName,
 		EnvRepoCustomHooksPath + "=" + filepath.Join(opts.RepoPath, "custom_hooks"),

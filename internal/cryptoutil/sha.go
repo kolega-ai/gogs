@@ -19,7 +19,12 @@ func SHA1(str string) string {
 
 // SHA256 encodes string to hexadecimal of SHA256 checksum.
 func SHA256(str string) string {
+	return hex.EncodeToString(SHA256Bytes(str))
+}
+
+// SHA256Bytes encodes string to SHA256 checksum.
+func SHA256Bytes(str string) []byte {
 	h := sha256.New()
 	_, _ = h.Write([]byte(str))
-	return hex.EncodeToString(h.Sum(nil))
+	return h.Sum(nil)
 }
