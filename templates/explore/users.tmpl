@@ -16,7 +16,7 @@
 									{{if .Location}}
 										<i class="octicon octicon-location"></i> {{.Location}}
 									{{end}}
-									{{if and .Email $.IsLogged}}
+									{{if and .Email (or (eq .ID $.LoggedUserID) $.IsAdmin)}}
 										<i class="octicon octicon-mail"></i>
 										<a href="mailto:{{.Email}}" rel="nofollow">{{.Email}}</a>
 									{{end}}
