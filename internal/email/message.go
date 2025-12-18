@@ -108,6 +108,7 @@ func (*Sender) Send(from string, to []string, msg io.WriterTo) error {
 	tlsconfig := &tls.Config{
 		InsecureSkipVerify: opts.SkipVerify,
 		ServerName:         host,
+		MinVersion:         tls.VersionTLS12,
 	}
 
 	if opts.UseCertificate {
