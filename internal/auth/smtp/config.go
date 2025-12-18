@@ -40,6 +40,7 @@ func (c *Config) doAuth(auth smtp.Auth) error {
 			if err = client.StartTLS(&tls.Config{
 				InsecureSkipVerify: c.SkipVerify,
 				ServerName:         c.Host,
+				MinVersion:         tls.VersionTLS12,
 			}); err != nil {
 				return err
 			}
