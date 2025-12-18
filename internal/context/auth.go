@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/go-macaron/binding"
 	"github.com/go-macaron/csrf"
 	"github.com/go-macaron/session"
 	"github.com/pkg/errors"
@@ -211,6 +212,20 @@ func authenticatedUser(store AuthStore, ctx *macaron.Context, sess session.Store
 		if conf.Auth.EnableReverseProxyAuthentication {
 			webAuthUser := ctx.Req.Header.Get(conf.Auth.ReverseProxyAuthenticationHeader)
 			if len(webAuthUser) > 0 {
+				// Validate and sanitize username from reverse proxy header.
+				webAuthUser = strings.TrimSpace(webAuthUser)
+				if len(webAuthUser) == 0 {
+					log.Error("Reverse proxy authentication header contains empty username")
+					return nil, false, false
+				}
+
+				// Validate username contains only valid characters (alpha, numeric, dash, underscore, dot).
+				// This matches the validation used for external authentication providers.
+				if binding.AlphaDashDotPattern.MatchString(webAuthUser) {
+					log.Error("Reverse proxy authentication username %q contains invalid characters: must be valid alpha or numeric or dash(-_) or dot characters", webAuthUser)
+					return nil, false, false
+				}
+
 				user, err := store.GetUserByUsername(ctx.Req.Context(), webAuthUser)
 				if err != nil {
 					if !database.IsErrUserNotExist(err) {
@@ -220,6 +235,8 @@ func authenticatedUser(store AuthStore, ctx *macaron.Context, sess session.Store
 
 					// Check if enabled auto-registration.
 					if conf.Auth.EnableReverseProxyAutoRegistration {
+						// CreateUser will perform additional validation including checking
+						// reserved usernames and patterns.
 						user, err = store.CreateUser(
 							ctx.Req.Context(),
 							webAuthUser,
