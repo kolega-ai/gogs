@@ -159,6 +159,7 @@ func dial(ls *Config) (*ldap.Conn, error) {
 	tlsCfg := &tls.Config{
 		ServerName:         ls.Host,
 		InsecureSkipVerify: ls.SkipVerify,
+		MinVersion:         tls.VersionTLS12,
 	}
 	if ls.SecurityProtocol == SecurityProtocolLDAPS {
 		return ldap.DialTLS("tcp", fmt.Sprintf("%s:%d", ls.Host, ls.Port), tlsCfg)
