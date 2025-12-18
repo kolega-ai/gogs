@@ -41,6 +41,8 @@
 						<dd><code>{{.Server.UnixSocketPermission}}</code></dd>
 						<dt>{{.i18n.Tr "admin.config.server.local_root_url"}}</dt>
 						<dd>{{.Server.LocalRootURL}}</dd>
+						<dt>{{.i18n.Tr "admin.config.server.local_skip_tls_verify"}}</dt>
+						<dd><i class="fa fa{{if .Server.LocalSkipTLSVerify}}-check{{end}}-square-o"></i></dd>
 
 						<div class="ui divider"></div>
 

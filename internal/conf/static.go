@@ -269,6 +269,7 @@ type ServerOpts struct {
 	TLSMinVersion        string `ini:"TLS_MIN_VERSION"`
 	UnixSocketPermission string
 	LocalRootURL         string `ini:"LOCAL_ROOT_URL"`
+	LocalSkipTLSVerify   bool   `ini:"LOCAL_SKIP_TLS_VERIFY"`
 
 	OfflineMode      bool
 	DisableRouterLog bool
