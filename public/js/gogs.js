@@ -640,7 +640,7 @@ function initRepository() {
 function initWikiForm() {
   var $editArea = $(".repository.wiki textarea#edit_area");
   if ($editArea.length > 0) {
-    new SimpleMDE({
+    new EasyMDE({
       autoDownloadFontAwesome: false,
       element: $editArea[0],
       forceSync: true,
@@ -701,7 +701,7 @@ function initWikiForm() {
   }
 }
 
-var simpleMDEditor;
+var easyMDEditor;
 var codeMirrorEditor;
 
 // For IE
@@ -734,11 +734,11 @@ function setSimpleMDE($editArea) {
     codeMirrorEditor = null;
   }
 
-  if (simpleMDEditor) {
+  if (easyMDEditor) {
     return true;
   }
 
-  simpleMDEditor = new SimpleMDE({
+  easyMDEditor = new EasyMDE({
     autoDownloadFontAwesome: false,
     element: $editArea[0],
     forceSync: true,
@@ -799,9 +799,9 @@ function setSimpleMDE($editArea) {
 }
 
 function setCodeMirror($editArea) {
-  if (simpleMDEditor) {
-    simpleMDEditor.toTextArea();
-    simpleMDEditor = null;
+  if (easyMDEditor) {
+    easyMDEditor.toTextArea();
+    easyMDEditor = null;
   }
 
   if (codeMirrorEditor) {
