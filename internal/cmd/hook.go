@@ -240,7 +240,7 @@ func runHookPostReceive(c *cli.Context) error {
 
 		resp, err := httplib.Get(reqURL).
 			SetTLSClientConfig(&tls.Config{
-				InsecureSkipVerify: true,
+				InsecureSkipVerify: conf.Webhook.SkipTLSVerify,
 			}).Response()
 		if err == nil {
 			_ = resp.Body.Close()
