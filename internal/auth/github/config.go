@@ -28,7 +28,10 @@ func (c *Config) doAuth(login, password string) (fullname, email, location, webs
 		Username: strings.TrimSpace(login),
 		Password: strings.TrimSpace(password),
 		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: c.SkipVerify},
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: c.SkipVerify,
+				MinVersion:         tls.VersionTLS12,
+			},
 		},
 	}
 	client, err := github.NewEnterpriseClient(c.APIEndpoint, c.APIEndpoint, tp.Client())
