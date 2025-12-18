@@ -138,7 +138,7 @@ func FuncMap() []template.FuncMap {
 }
 
 func Safe(raw string) template.HTML {
-	return template.HTML(raw)
+	return template.HTML(markup.Sanitize(raw))
 }
 
 func Str2HTML(raw string) template.HTML {
